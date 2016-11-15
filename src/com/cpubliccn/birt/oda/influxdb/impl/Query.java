@@ -7,18 +7,11 @@
 
 package com.cpubliccn.birt.oda.influxdb.impl;
 
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.Map;
-import java.util.Scanner;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.eclipse.datatools.connectivity.oda.IParameterMetaData;
 import org.eclipse.datatools.connectivity.oda.IQuery;
 import org.eclipse.datatools.connectivity.oda.IResultSet;
@@ -28,9 +21,8 @@ import org.eclipse.datatools.connectivity.oda.SortSpec;
 import org.eclipse.datatools.connectivity.oda.spec.QuerySpecification;
 
 import com.cpubliccn.birt.oda.influxdb.i18n.Messages;
-import com.cpubliccn.birt.oda.influxdb.util.InfluxDataParser;
+import com.cpubliccn.birt.oda.influxdb.util.InfluxAdapter;
 import com.cpubliccn.birt.oda.influxdb.util.SqlParser;
-import com.google.gson.Gson;
 
 
 /**
@@ -48,18 +40,12 @@ public class Query implements IQuery
     private String m_preparedText;
     private IResultSetMetaData resultSetMetaData;
     
-    private HttpClient httpClient;
-    private String httpUrl;
-    private String dbname;
+    private InfluxAdapter influxAdapter;
     
     private String queryText;
-    
-    private InfluxDataParser influxDataParser;
 	
-	public Query(HttpClient httpClient, String httpUrl, String dbname) {
-		this.httpClient = httpClient;
-		this.httpUrl = httpUrl;
-		this.dbname = dbname;
+	public Query(InfluxAdapter influxAdapter) {
+		this.influxAdapter = influxAdapter;
 	}
 
 	/*
@@ -114,8 +100,7 @@ public class Query implements IQuery
 	 */
 	public IResultSet executeQuery() throws OdaException
 	{
-		influxDataParser = new InfluxDataParser(executeInfluxQuery(this.queryText));
-		IResultSet resultSet = new ResultSet(influxDataParser.getRowSet(0),
+		IResultSet resultSet = new ResultSet(influxAdapter.executeQuery(this.queryText),
 				this.resultSetMetaData);
 		return resultSet;
 	}
@@ -413,33 +398,7 @@ public class Query implements IQuery
         throw new UnsupportedOperationException();
     }
     
-	@SuppressWarnings("rawtypes")
-	private Map executeInfluxQuery(String query) throws OdaException {
-    	HttpMethod httpMethod = new GetMethod(httpUrl);
-        NameValuePair[] param = { new NameValuePair("q", query),  
-                new NameValuePair("db", this.dbname)} ; 
-        String responseData = null;
-    	httpMethod.setQueryString(param);
-    	try {
-			httpClient.executeMethod(httpMethod);
-//			InputStream is = httpMethod.getResponseBodyAsStream();
-//			Scanner scanner = new Scanner(is, "UTF-8");
-//			if (scanner.hasNext()) {
-//				responseData = scanner.next();
-//			}
-	    	responseData = httpMethod.getResponseBodyAsString();
-		} catch (Exception e) {
-			throw new OdaException(e);
-		} 
-    	
-    	if (!responseData.startsWith("{")) {
-    		throw new OdaException("data was not json object: " + responseData);
-    	}
-    	
-    	Gson gson = new Gson();
-    	
-    	return gson.fromJson(responseData, Map.class);
-    }
+
 	
     
 }

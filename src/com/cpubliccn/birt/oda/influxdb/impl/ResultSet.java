@@ -43,6 +43,7 @@ public class ResultSet implements IResultSet
     	this.sourceData = rowSet;
     	this.resultSetMetaData = resultSetMetaData;
     	this.setMaxRows(rowSet.length);
+    	this.cursor = CURSOR_INITIAL_VALUE;
     }
     
 	/*
@@ -75,9 +76,7 @@ public class ResultSet implements IResultSet
 	 */
 	public boolean next() throws OdaException
 	{   
-        if( ( maxRow <= 0 ? false : cursor >= maxRow - 1 )
-                || cursor >= this.sourceData.length - 1 )
-        {
+        if( maxRow <= 0 ? false : cursor >= maxRow - 1) {
         	cursor = CURSOR_INITIAL_VALUE;
             return false;
         }
@@ -89,9 +88,8 @@ public class ResultSet implements IResultSet
 	 * @see org.eclipse.datatools.connectivity.oda.IResultSet#close()
 	 */
 	public void close() throws OdaException
-	{
-        // TODO Auto-generated method stub       
-        cursor = 0;     // reset row counter
+	{     
+        cursor = CURSOR_INITIAL_VALUE;     // reset row counter
 	}
 
 	/*

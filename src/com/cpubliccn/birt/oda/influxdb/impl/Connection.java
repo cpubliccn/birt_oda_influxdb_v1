@@ -9,15 +9,14 @@ package com.cpubliccn.birt.oda.influxdb.impl;
 
 import java.util.Properties;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.eclipse.datatools.connectivity.oda.IConnection;
 import org.eclipse.datatools.connectivity.oda.IDataSetMetaData;
 import org.eclipse.datatools.connectivity.oda.IQuery;
 import org.eclipse.datatools.connectivity.oda.OdaException;
 
 import com.cpubliccn.birt.oda.influxdb.i18n.Messages;
+import com.cpubliccn.birt.oda.influxdb.util.InfluxAdapter;
+import com.cpubliccn.birt.oda.influxdb.util.InfluxHttpAdapter;
 import com.ibm.icu.util.ULocale;
 
 
@@ -27,7 +26,7 @@ import com.ibm.icu.util.ULocale;
 public class Connection implements IConnection
 {
     private boolean m_isOpen = false;
-    private HttpClient httpClient = null;
+    private InfluxAdapter influxAdapter = null;
     
     private String httpUrl = null;
     private String dbname = null;
@@ -44,10 +43,8 @@ public class Connection implements IConnection
         }
         this.httpUrl = connProperties.getProperty(CommonConstants.CONN_HTTP_URL);
         this.dbname = connProperties.getProperty(CommonConstants.CONN_DBNAME);	
-        if (httpClient == null) {
-        	httpClient = new HttpClient();
-        }
-	    m_isOpen = this.validateInfluxUrl(httpUrl, dbname);        
+        influxAdapter = new InfluxHttpAdapter(httpUrl, dbname);
+	    m_isOpen = influxAdapter.validateConnection();        
  	}
 
 	/*
@@ -63,9 +60,7 @@ public class Connection implements IConnection
 	 */
 	public void close() throws OdaException
 	{
-		if (httpClient != null) {
-			httpClient = null;
-		}
+		influxAdapter.close();
 	    m_isOpen = false;
 	}
 
@@ -95,7 +90,7 @@ public class Connection implements IConnection
 	{
         // assumes that this driver supports only one type of data set,
         // ignores the specified dataSetType
-		return new Query(this.httpClient, this.httpUrl, this.dbname);
+		return new Query(influxAdapter);
 	}
 
 	/*
@@ -130,20 +125,6 @@ public class Connection implements IConnection
         // do nothing; assumes no locale support
     }    
     
-    private boolean validateInfluxUrl(String httpUrl, String db) throws OdaException {
-    	String request = httpUrl + "/q=SHOW+MEASUREMENTS&db=" + db;
-        HttpMethod httpMethod = new GetMethod(request);
-    	try {
-    		httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
-			httpClient.executeMethod(httpMethod);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-//			throw new OdaException(e);
-		} 
-    	httpMethod.releaseConnection();
-    	return true;
-    }
 
     
 }
