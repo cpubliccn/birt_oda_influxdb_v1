@@ -20,7 +20,7 @@ import org.eclipse.datatools.connectivity.oda.util.manifest.ManifestExplorer;
  */
 public class Driver implements IDriver
 {
-    static String ODA_DATA_SOURCE_ID = "com.warefont.birt.oda.influxdb";  //$NON-NLS-1$
+    static String ODA_DATA_SOURCE_ID = "com.cpubliccn.birt.oda.influxdb";  //$NON-NLS-1$
     
 	/*
 	 * @see org.eclipse.datatools.connectivity.oda.IDriver#getConnection(java.lang.String)
